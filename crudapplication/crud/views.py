@@ -65,7 +65,7 @@ class SignupView(APIView):
             )
             api_request_body['user_id'] = user.id
             response["success"] = True
-            response["details"] = "User registration successfull"
+            response["details"] = "User registred successfully"
             response["errors"] = ""
             UserProfile.objects.create(
                 phone=phone,
@@ -200,4 +200,18 @@ class GetUsersView(APIView):
         response["details"] = ""
         response["errors"] = ""
         response["data"] = UserprofileSerializer(queryset, many=True).data
+        return Response(data=response, status=status.HTTP_200_OK)
+
+
+class LogoutView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
+
+    def delete(self, request):
+        response = {}
+        Token.objects.filter(user=request.user).delete()
+        response["success"] = True
+        response["details"] = "Token removed successfully"
+        response["errors"] = ""
         return Response(data=response, status=status.HTTP_200_OK)
