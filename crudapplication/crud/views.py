@@ -10,10 +10,11 @@ from django.db import transaction
 from django.contrib.auth.models import User
 from django.db.models import Q
 from rest_framework.authtoken.models import Token
+from django.core.mail import send_mail
 
 from crud.models import UserProfile
 from crud.serializers import GetUserValidator, RegisterUserValidator, UserprofileSerializer
-from django.core.mail import send_mail
+from crud.filters import make_user_filters
 
 
 class SignupView(APIView):
@@ -40,6 +41,8 @@ class SignupView(APIView):
         zipcode = api_request_body.get('zipcode')
         address = api_request_body.get('address')
         device_type = api_request_body.get('device_type')
+        first_name = api_request_body.get('first_name')
+        last_name = api_request_body.get('last_name')
 
         if User.objects.filter(Q (username__iexact=username) | Q (email__iexact=email)).exists():
             response["success"] = False
@@ -56,7 +59,9 @@ class SignupView(APIView):
             user = User.objects.create_user(
                 username=username,
                 email=email,
-                password=password
+                password=password,
+                last_name=last_name,
+                first_name=first_name
             )
             api_request_body['user_id'] = user.id
             response["success"] = True
@@ -80,6 +85,10 @@ class SignupView(APIView):
 
 
 class LoginView(APIView):
+    permission_classes = []
+    authentication_classes = []
+    parser_classes = [JSONParser]
+
     def post(self, request):
         response = {}
         api_request_body = request.data
@@ -108,6 +117,7 @@ class LoginView(APIView):
 class CRUDView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
 
     def get(self, request):
         response = {}
@@ -175,3 +185,19 @@ class CRUDView(APIView):
             response["details"] = "User not found"
             response["errors"] = str(e)
             return Response(data=response, status=status.HTTP_412_PRECONDITION_FAILED)
+
+
+class GetUsersView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
+
+    def get(self, request):
+        response = {}
+        kwargs = make_user_filters(request.data)
+        queryset = UserProfile.objects.filter(**kwargs)
+        response["success"] = True
+        response["details"] = ""
+        response["errors"] = ""
+        response["data"] = UserprofileSerializer(queryset, many=True).data
+        return Response(data=response, status=status.HTTP_200_OK)

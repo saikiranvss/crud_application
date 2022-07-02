@@ -8,6 +8,8 @@ from crud.models import UserProfile
 class RegisterUserValidator(serializers.Serializer):
     username = serializers.CharField(max_length=30, required=True)
     password = serializers.CharField(max_length=30, required=True)
+    first_name = serializers.CharField(max_length=30, required=True)
+    last_name = serializers.CharField(max_length=30, required=True)
     email = serializers.EmailField(max_length=50, required=True)
     phone = serializers.CharField(max_length=10, required=True)
     city = serializers.CharField(max_length=32, required=True)
