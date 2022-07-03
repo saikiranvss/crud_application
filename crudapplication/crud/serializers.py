@@ -30,6 +30,8 @@ class GetUserValidator(serializers.Serializer):
 class UserprofileSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
+    first_name = serializers.SerializerMethodField()
+    last_name = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -40,3 +42,9 @@ class UserprofileSerializer(serializers.ModelSerializer):
 
     def get_username(self, obj):
         return obj.user.username
+
+    def get_first_name(self, obj):
+        return obj.user.first_name
+
+    def get_last_name(self, obj):
+        return obj.user.last_name

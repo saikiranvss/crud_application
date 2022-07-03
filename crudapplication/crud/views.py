@@ -120,24 +120,21 @@ class CRUDView(APIView):
     parser_classes = [JSONParser]
 
     def get(self, request):
-        response = {}
-        print(request.user_id)
-        api_request_body = request.data
-        validation = GetUserValidator(data=api_request_body)
-        if not validation.is_valid():
-            response["success"] = False
-            response["details"] = "Bad Request Body"
-            response["errors"] = validation.errors
-            return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
-        user = UserProfile.objects.get(user_id=api_request_body.get("user_id"))
-        response["success"] = True
-        response["details"] = ""
-        response["errors"] = ""
-        response["data"] = UserprofileSerializer(user, many=False).data
-        return Response(data=response, status=status.HTTP_412_PRECONDITION_FAILED)
+        try:
+            response = {}
+            user = UserProfile.objects.get(user_id=request.user.id)
+            response["success"] = True
+            response["details"] = ""
+            response["errors"] = ""
+            response["data"] = UserprofileSerializer(user, many=False).data
+            return Response(data=response, status=status.HTTP_412_PRECONDITION_FAILED)
+        except Exception as e:
+            response = {}
+            response["success"] = True
+            response["details"] = "Exception occured in CRUDView"
+            response["errors"] = str(e)
+            return Response(data=response, status=status.HTTP_412_PRECONDITION_FAILED)
 
-    def post(self, request):
-        pass
 
     def put(self, request):
         response = {}
